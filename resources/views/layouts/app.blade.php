@@ -10,7 +10,7 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
-    
+
     <!-- Bootstrap & Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
@@ -36,60 +36,74 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
-                    <ul class="navbar-nav me-auto">
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="{{ route('products.index') }}">
-                                <i class="bi bi-shop"></i> Produk
-                            </a>
-                        </li>
-                        @auth
+                    <ul class="navbar-nav ms-auto">
+                        @guest
+                            <!-- Guest: Hanya menampilkan Produk -->
                             <li class="nav-item">
-                                <a class="nav-link text-white" href="{{ route('cart.index') }}">
-                                    <i class="bi bi-cart"></i> Keranjang 
+                                <a class="nav-link text-white" href="{{ route('products.index') }}">
+                                    <i class="bi bi-shop"></i> Produk
                                 </a>
                             </li>
+                        @endguest
+
+                        @auth
+                            @can('create', 'App\Models.Product')
+                                <!-- Admin: Tidak menampilkan Produk dan Keranjang -->
+                            @else
+                                <!-- User yang login: Menampilkan Produk dan Keranjang -->
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('products.index') }}">
+                                        <i class="bi bi-shop"></i> Produk
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-white" href="{{ route('cart.index') }}">
+                                        <i class="bi bi-cart"></i> Keranjang
+                                    </a>
+                                </li>
+                            @endcan
                         @endauth
                     </ul>
 
                     <!-- Right Side Of Navbar -->
                     <ul class="navbar-nav ms-auto">
                         @guest
-                            @if (Route::has('login'))
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('login') }}">
-                                        <i class="bi bi-box-arrow-in-right"></i> Login
-                                    </a>
-                                </li>
-                            @endif
-                            @if (Route::has('register'))
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('register') }}">
-                                        <i class="bi bi-person-plus"></i> Register
-                                    </a>
-                                </li>
-                            @endif
+                        @if (Route::has('login'))
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                        </li>
+                        @endif
+                        @if (Route::has('register'))
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('register') }}">
+                                <i class="bi bi-person-plus"></i> Register
+                            </a>
+                        </li>
+                        @endif
                         @else
-                            @can('create', App\Models\Product::class)
-                                <li class="nav-item">
-                                    <a class="nav-link text-white" href="{{ route('products.index') }}">
-                                        <i class="bi bi-gear"></i> Kelola Produk
+                        @can('create', App\Models\Product::class)
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="{{ route('products.index') }}">
+                                <i class="bi bi-gear"></i> Kelola Produk
+                            </a>
+                        </li>
+                        @endcan
+
+                        <!-- Dropdown Profil & Logout -->
+                        <li class="nav-item dropdown">
+                            <a id="userMenu" class="nav-link dropdown-toggle text-white" href="#" role="button">
+                                <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" id="logoutMenu" style="display: none;">
+                                <li>
+                                    <a class="dropdown-item text-danger" href="#" id="logoutButton">
+                                        <i class="bi bi-box-arrow-left"></i> Logout
                                     </a>
                                 </li>
-                            @endcan
-
-                            <!-- Dropdown Profil & Logout -->
-                            <li class="nav-item dropdown">
-                                <a id="userMenu" class="nav-link dropdown-toggle text-white" href="#" role="button">
-                                    <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" id="logoutMenu" style="display: none;">
-                                    <li>
-                                        <a class="dropdown-item text-danger" href="#" id="logoutButton">
-                                            <i class="bi bi-box-arrow-left"></i> Logout
-                                        </a>
-                                    </li>
-                                </ul>
-                            </li>
+                            </ul>
+                        </li>
                         @endguest
                     </ul>
                 </div>
@@ -126,30 +140,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             let userMenu = document.getElementById("userMenu");
             let logoutMenu = document.getElementById("logoutMenu");
             let logoutButton = document.getElementById("logoutButton");
 
             // Toggle dropdown saat userMenu diklik
-            userMenu.addEventListener("click", function (event) {
+            userMenu.addEventListener("click", function(event) {
                 event.preventDefault();
                 logoutMenu.style.display = (logoutMenu.style.display === "block") ? "none" : "block";
             });
 
             // Konfirmasi sebelum logout dan arahkan ke login
-            logoutButton.addEventListener("click", function (event) {
+            logoutButton.addEventListener("click", function(event) {
                 event.preventDefault();
                 if (confirm("Apakah Anda yakin ingin keluar dari sistem?")) {
                     document.getElementById('logout-form').submit();
-                    setTimeout(function () {
+                    setTimeout(function() {
                         window.location.href = "{{ route('login') }}"; // Redirect ke halaman login
                     }, 1000); // Tunggu sedikit agar form terkirim dulu
                 }
             });
 
             // Menutup dropdown jika klik di luar
-            document.addEventListener("click", function (event) {
+            document.addEventListener("click", function(event) {
                 if (!userMenu.contains(event.target) && !logoutMenu.contains(event.target)) {
                     logoutMenu.style.display = "none";
                 }
@@ -162,4 +176,5 @@
     </form>
 
 </body>
+
 </html>
