@@ -26,8 +26,10 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies(); // Daftarkan semua kebijakan (policies)
 
         // Admin memiliki akses penuh
-        Gate::before(function ($user, $ability) {
-            return $user->hasRole('Admin') ? true : null;
+        Gate::before(function ($user) {
+            if ($user->hasRole('Admin')) {
+                return true; // Berikan akses penuh
+            }
         });
 
         // Definisikan akses untuk User biasa

@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use Illuminate\Http\Request;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
 
 class ProductController extends Controller
 {
@@ -15,7 +13,9 @@ class ProductController extends Controller
     public function __construct()
     {
         $this->middleware('auth'); // Pastikan user login
-        $this->middleware('role:Admin')->except(['index', 'show']);
+        $this->middleware('role:Admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
+        // Tambahkan log untuk debugging
+        \Log::info('Middleware role:Admin diterapkan');
     }
 
     /**
@@ -38,18 +38,24 @@ class ProductController extends Controller
     /**
      * Menyimpan produk baru ke database (hanya untuk Admin).
      */
-    public function store(StoreProductRequest $request)
+    public function store(Request $request)
     {
-        Product::create($request->validated());
-        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan!');
+        $validated = $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer'
+        ]);
+
+        Product::create($validated);
+        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan');
     }
 
     /**
      * Menampilkan detail produk (dapat diakses oleh semua user).
      */
-    public function show($id)
+    public function show(Product $product)
     {
-        $product = Product::findOrFail($id);
         return view('products.show', compact('product'));
     }
 
@@ -64,10 +70,17 @@ class ProductController extends Controller
     /**
      * Memperbarui produk di database (hanya untuk Admin).
      */
-    public function update(UpdateProductRequest $request, Product $product)
+    public function update(Request $request, Product $product)
     {
-        $product->update($request->validated());
-        return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui!');
+        $validated = $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'price' => 'required|numeric',
+            'stock' => 'required|integer'
+        ]);
+
+        $product->update($validated);
+        return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui');
     }
 
     /**
@@ -76,6 +89,6 @@ class ProductController extends Controller
     public function destroy(Product $product)
     {
         $product->delete();
-        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus!');
+        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus');
     }
 }

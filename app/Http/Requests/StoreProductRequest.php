@@ -9,7 +9,7 @@ class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->role === 'admin'; // Pastikan hanya admin yang bisa menambah produk
+        return Auth::check() && Auth::user()->role === 'Admin'; // Pastikan hanya admin yang bisa menambah produk
     }
 
     public function rules(): array

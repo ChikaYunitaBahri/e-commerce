@@ -9,7 +9,7 @@ class UpdateProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return Auth::check() && Auth::user()->role === 'admin'; // Pastikan hanya admin yang bisa mengedit produk
+        return Auth::check() && Auth::user()->role === 'Admin'; // Pastikan hanya admin yang bisa mengedit produk
     }
 
     public function rules(): array

@@ -11,11 +11,12 @@ use Illuminate\Support\Facades\Gate;
 class CartController extends Controller
 {
     /**
-     * Middleware untuk memastikan user sudah login.
+     * Middleware untuk mengatur izin akses berdasarkan role.
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth'); // Pastikan user login
+        $this->middleware('role:User'); // Hanya untuk role User
     }
 
     /**
@@ -28,47 +29,20 @@ class CartController extends Controller
     }
 
     /**
-     * Menyimpan produk ke dalam keranjang.
+     * Menambahkan produk ke keranjang.
      */
-    public function store(Request $request)
+    public function addToCart(Request $request, Product $product)
     {
-        // Pastikan user sudah login
-        if (!Auth::check()) {
-            return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu.');
-        }
-
-        // Validasi input
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
+        $validated = $request->validate([
             'quantity' => 'required|integer|min:1'
         ]);
 
-        // Pastikan user memiliki izin 'add-to-cart'
-        if (!Gate::allows('add-to-cart')) {
-            return abort(403, 'Anda tidak memiliki izin untuk menambahkan produk ke keranjang.');
-        }
+        Cart::updateOrCreate(
+            ['user_id' => auth()->id(), 'product_id' => $product->id],
+            ['quantity' => $validated['quantity']]
+        );
 
-        // Ambil produk
-        $product = Product::findOrFail($request->product_id);
-
-        // Cek apakah produk sudah ada di keranjang user
-        $cartItem = Cart::where('user_id', Auth::id())
-            ->where('product_id', $request->product_id)
-            ->first();
-
-        if ($cartItem) {
-            // Jika produk sudah ada, hanya tambahkan jumlahnya
-            $cartItem->increment('quantity', $request->quantity);
-        } else {
-            // Jika belum ada, tambahkan ke keranjang
-            Cart::create([
-                'user_id' => Auth::id(),
-                'product_id' => $request->product_id,
-                'quantity' => $request->quantity,
-            ]);
-        }
-
-        return redirect()->route('cart.index')->with('success', 'Produk berhasil ditambahkan ke keranjang!');
+        return redirect()->route('cart.index')->with('success', 'Produk berhasil ditambahkan ke keranjang');
     }
 
     /**
@@ -86,49 +60,40 @@ class CartController extends Controller
     /**
      * Menampilkan form edit untuk jumlah produk di keranjang.
      */
-    public function edit(Cart $cart)
+    public function edit($id)
     {
-        if (!Gate::allows('update', $cart)) {
-            return abort(403);
+        $cart = Cart::findOrFail($id);
+
+        if (auth()->id() !== $cart->user_id) {
+            abort(403, 'Unauthorized action.');
         }
 
         return view('cart.edit', compact('cart'));
     }
 
     /**
-     * Memperbarui jumlah produk di dalam keranjang.
+     * Mengedit jumlah produk di keranjang.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Cart $cart)
     {
-        $cart = Cart::findOrFail($id);
+        $this->authorize('update', $cart);
 
-        if (!Gate::allows('update', $cart)) {
-            return abort(403);
-        }
-
-        $request->validate([
+        $validated = $request->validate([
             'quantity' => 'required|integer|min:1'
         ]);
 
-        $cart->update([
-            'quantity' => $request->quantity
-        ]);
-
-        return redirect()->route('cart.index')->with('success', 'Jumlah produk berhasil diperbarui!');
+        $cart->update(['quantity' => $validated['quantity']]);
+        return redirect()->route('cart.index')->with('success', 'Jumlah produk berhasil diperbarui');
     }
 
     /**
      * Menghapus produk dari keranjang.
      */
-    public function destroy($id)
+    public function destroy(Cart $cart)
     {
-        $cart = Cart::findOrFail($id);
-
-        if (!Gate::allows('delete', $cart)) {
-            return abort(403);
-        }
+        $this->authorize('delete', $cart);
 
         $cart->delete();
-        return redirect()->route('cart.index')->with('success', 'Produk berhasil dihapus dari keranjang!');
+        return redirect()->route('cart.index')->with('success', 'Produk berhasil dihapus dari keranjang');
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Policies;
 
-use App\Models\User;
 use App\Models\Cart;
+use App\Models\User;
 
 class CartPolicy
 {
@@ -19,11 +19,11 @@ class CartPolicy
 
     public function update(User $user, Cart $cart)
     {
-        return $cart->user_id == $user->id;
+        return $user->id === $cart->user_id;
     }
 
     public function delete(User $user, Cart $cart)
     {
-        return $cart->user_id == $user->id;
+        return $user->id === $cart->user_id;
     }
 }
