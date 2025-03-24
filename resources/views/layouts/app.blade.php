@@ -101,11 +101,11 @@
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-md-12">
-                        @if (session('success'))
+                        <!-- @if (session('success'))
                             <div class="alert alert-success text-center" role="alert">
                                 {{ session('success') }}
                             </div>
-                        @endif
+                        @endif -->
 
                         @yield('content')
 

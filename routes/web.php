@@ -30,12 +30,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Routing khusus Admin CRUD produk
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+Route::middleware(['auth', 'role:Admin'])->group(function () {
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create'); // Pastikan route ini ada
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 });
-
-Route::resource('products', ProductController::class);

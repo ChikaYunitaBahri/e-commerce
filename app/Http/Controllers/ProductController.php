@@ -12,10 +12,10 @@ class ProductController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth'); // Pastikan user login
-        $this->middleware('role:Admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
+        $this->middleware('auth');
+        //$this->middleware('role:Admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
         // Tambahkan log untuk debugging
-        \Log::info('Middleware role:Admin diterapkan');
+        //\Log::info('Middleware role:Admin diterapkan');
     }
 
     /**
